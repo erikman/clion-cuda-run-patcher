@@ -52,9 +52,8 @@ public class CMakeRunPatcherAppRunConfiguration extends CMakeAppRunConfiguration
         if (config != null) {
             CMakeConfiguration buildConfiguration = patchConfiguration(config.buildConfiguration);
             CMakeConfiguration runConfiguration = patchConfiguration(config.runConfiguration);
-            File runExecutable = patchRunExecutable(config.runExecutable, buildConfiguration, runConfiguration);
 
-            return new BuildAndRunConfigurations(buildConfiguration, runConfiguration, runExecutable, config.explicitBuildTargetName);
+            return new BuildAndRunConfigurations(buildConfiguration, runConfiguration, config.runExecutable, config.explicitBuildTargetName);
         }
 
         return null;
@@ -115,22 +114,6 @@ public class CMakeRunPatcherAppRunConfiguration extends CMakeAppRunConfiguration
         }
 
         return patchedConfiguration;
-    }
-
-    @Nullable
-    private File patchRunExecutable(@Nullable final File runExecutable, @Nullable final CMakeConfiguration buildConfiguration, @Nullable final CMakeConfiguration runConfiguration) {
-        File patchedRunExecutable = runExecutable;
-
-        // check if we have encountered https://youtrack.jetbrains.com/issue/CPP-10292
-        if (runExecutable != null && runExecutable.toString().endsWith(".o")) {
-            if (runConfiguration != null) {
-                patchedRunExecutable = runConfiguration.getProductFile();
-            } else if (buildConfiguration != null) {
-                patchedRunExecutable = buildConfiguration.getProductFile();
-            }
-        }
-
-        return patchedRunExecutable;
     }
 
     @Nullable
