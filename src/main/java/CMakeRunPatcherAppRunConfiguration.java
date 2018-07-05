@@ -121,19 +121,25 @@ public class CMakeRunPatcherAppRunConfiguration extends CMakeAppRunConfiguration
         File patchedExecutableFile = executableFile;
 
         if (executableFile != null) {
-            String executableFileString = executableFile.toString();
             // check if we have encountered https://youtrack.jetbrains.com/issue/CPP-10292
-            if (executableFileString.endsWith(".o")) {
-                if (configuration != null) {
+            if (executableFile.getName().equals("cmake_device_link.o")) {
+                // (incorrect) executable has format
+                // "$(CMAKE_CURRENT_BINARY_DIR)/CMakeFiles/$(TARGET_NAME).dir/cmake_device_link.o"
+                // drop parts until we get to CMAKE_CURRENT_BINARY_DIR
+                File cmakeCurrentBinaryDir = executableFile;
+                for (int i = 0; cmakeCurrentBinaryDir != null && i < 3; i++) {
+                    cmakeCurrentBinaryDir = cmakeCurrentBinaryDir.getParentFile();
+                }
+
+                if (cmakeCurrentBinaryDir != null && configuration != null) {
                     String outputName = getOutputNameForConfiguration(configuration);
 
                     if (outputName == null) {
                         outputName = getOutputNameForTarget(configuration.getTarget());
                     }
-
-                    // NOTE: if configurationGenerationDir is incorrect might need to use buildWorkingDir
-                    String correctedExePathString = configuration.getConfigurationGenerationDir().toString() + File.separator + outputName;
-                    patchedExecutableFile = new File(correctedExePathString);
+                    if (outputName != null) {
+                        patchedExecutableFile = new File(cmakeCurrentBinaryDir, outputName);
+                    }
                 }
             }
         }
